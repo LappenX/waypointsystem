@@ -1,0 +1,1 @@
+loader.include("api/mc/turtle/waypoint/waypoint.lua")

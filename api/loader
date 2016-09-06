@@ -1,0 +1,62 @@
+local global_path = ""
+
+function set_global(path)
+	global_path = path
+end
+
+local function to_err_string(err)
+	if not err then return "" end
+	
+	return "\nError:" .. tostring(err)
+end
+
+function include(file, clear_guards)
+	if not file then return end
+	
+	if not fs.exists(global_path .. file) then
+		error("File '" .. global_path .. file .. "' does not exist!")
+	end
+	
+	if fs.isDir(file) then
+		-- directory
+		local sub_files = fs.list(global_path .. file)
+		for _, sub_file in ipairs(sub_files) do
+			include(file .. "/" .. sub_file, clear_guards)
+		end
+	else
+		-- file
+		local content = ""
+		local handle = fs.open(global_path .. file, "r")
+		content = handle.readAll()
+		handle.close()
+		
+		-- include guarding
+		local guard_variable = string.gsub(file, "%.", "_")
+		guard_variable = string.gsub(guard_variable, "/", "_")
+		guard_variable = "_" .. guard_variable .. "_"
+		if not clear_guards then
+			-- include file
+			loadstring("guard_value = " .. guard_variable)()
+			loadstring(guard_variable .. " = true")()
+			if not guard_value then
+				local func, err = loadstring(content)
+				assert(func, "Failed compile: " .. global_path .. file .. to_err_string(err))
+				
+				local status, err = pcall(func)
+				assert(status, "Failed calling: " .. global_path .. file .. to_err_string(err))
+			end
+			guard_value = nil
+		else
+			-- clear include guard
+			loadstring(guard_variable .. " = nil")()
+		end
+	end
+end
+
+function include_all()
+	include("api")
+end
+
+function clear_all_include_guards()
+	include("api", true)
+end
