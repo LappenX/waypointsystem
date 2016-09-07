@@ -59,17 +59,17 @@ local TURTLE_EVADE_TIMEOUT = 120
 Mine.Plugin.EvadeTurtles = {}
 Mine.Plugin.EvadeTurtles.__index = Mine.Plugin.EvadeTurtles
 
-function Mine.Plugin.EvadeTurtles.new(timeout)
+function Mine.Plugin.EvadeTurtles.new(dig)
 	local result = {}
 	setmetatable(result, Mine.Plugin.EvadeTurtles)
 	
-	result.timeout = timeout
+	result.dig = dig
 	
 	return result
 end
 
 function Mine.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, block_id, block_metadata)
-	if block_id == 204 or block_id == 205 then
+	if block_id == 204 or block_id == 205 then -- is turtle
 		local waited = 0
 		while true do
 			local wait_time = math.random() * TURTLE_MAX_RANDOM_TEST_TIME
@@ -79,13 +79,32 @@ function Mine.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, block_
 			-- evade
 			if Turtle.Rel.detect(orientation) then
 				-- goto avoid orientation -> wait TURTLE_EVADE_TIME -> go back
+				local evaded = false
+				-- evade to free spot
 				for evade_orientation in ORIENTATIONS:it() do
 					if evade_orientation ~= orientation and not Turtle.Rel.detect(evade_orientation) then
 						-- found free block next to turtle
 						Turtle.Rel.move(1, evade_orientation)
 						os.sleep(TURTLE_EVADE_DURATION)
 						Turtle.Rel.move(-1, evade_orientation)
+						evaded = true
 						break
+					end
+				end
+				-- if not successful: dig and evade there
+				if not evaded and self.dig then
+					for evade_orientation in ORIENTATIONS:it() do
+						if evade_orientation ~= orientation then
+							local success, data = Turtle.Rel.inspect(evade_orientation)
+							local new_block_id = Blocks.get(data.name)
+							if block_id ~= 204 and block_id ~= 205 then -- not turtle
+								-- found block that can be dug
+								Turtle.Rel.move(1, evade_orientation, true)
+								os.sleep(TURTLE_EVADE_DURATION)
+								Turtle.Rel.move(-1, evade_orientation)
+								break
+							end
+						end
 					end
 				end
 			else
@@ -102,8 +121,6 @@ function Mine.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, block_
 		end
 	end
 end
-
-
 
 
 
