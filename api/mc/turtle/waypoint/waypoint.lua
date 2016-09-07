@@ -191,15 +191,22 @@ function Waypoint.get(id)
 end
 
 -- wp == nil => find wp by turtle location
-function Waypoint.calibrate(wp)
-	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use waypoints!")
+function Waypoint.calibrate(wp, rotation)
 	load_waypoints()
 	
 	current_wp = nil
 	if wp then
 		current_wp = wp
-		assert(current_wp.location == Turtle.Abs.getLocation(), "Waypoint location and turtle location must be equal!")
+		if Turtle.Abs.isCalibrated() then
+			assert(current_wp.location == Turtle.Abs.getLocation(), "Waypoint location and turtle location must be equal!")
+		else
+			assert(rotation, "Rotation must be given since turtle is not calibrated!")
+			Turtle.Abs.calibrate(wp.location:get(0), wp.location:get(1), wp.location:get(2), rotation)
+		end
 	else
+		assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use waypoints!")
+		assert(not rotation or rotation == Turtle.Abs.getRotation(), "Given rotation and turtle rotation must be equal!")
+		
 		for wp2 in wps:values_it() do
 			if wp2.location == Turtle.Abs.getLocation() then
 				current_wp = wp2
