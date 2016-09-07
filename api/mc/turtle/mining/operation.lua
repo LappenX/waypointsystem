@@ -8,13 +8,15 @@ Mine.Operation.Offset.new(f_goto_start, f_goto_mine)
 
 
 
-
+function Mine.Operation:run(plugin)
+function Mine.Operation:goto_start()
+function Mine.Operation:goto_mine()
 function Mine.Operation:add_plugin(plugin)
 function Mine.Operation:append(next_operation)
 
-virtual function Mine.Operation:run()
-virtual function Mine.Operation:goto_start()
-virtual function Mine.Operation:goto_mine()
+virtual function Mine.Operation:run_impl()
+virtual function Mine.Operation:goto_start_impl()
+virtual function Mine.Operation:goto_mine_impl()
 virtual function Mine.Operation:size()
 
 ]]--
@@ -93,6 +95,37 @@ function Mine.Operation:move(length, orientation, f_pre, f_post)
 	end
 end
 
+function Mine.Operation:run()
+	self.abort = false
+	self:do_plugins(self, "init")
+	
+	self:run_impl()
+	
+	if self.next_operation then
+		self.next_operation:run()
+	elseif self.goto_start_impl then
+		self:goto_start()
+	end
+	
+	return self
+end
+
+function Mine.Operation:goto_start()
+	self.is_in_goto = true
+	self:goto_start_impl()
+	if self.parent_operation then self.parent_operation:goto_start() end
+end
+
+function Mine.Operation:goto_mine()
+	if self.parent_operation then self.parent_operation:goto_mine() end
+	self:goto_mine_impl()
+	self.is_in_goto = false
+end
+
+function Mine.Operation:isInGoto()
+	return self.is_in_goto
+end
+
 
 
 
@@ -110,10 +143,8 @@ function Mine.Operation.Deposit.new(initial_orientation)
 	return result
 end
 
-function Mine.Operation.Deposit:run()
+function Mine.Operation.Deposit:run_impl()
 	assert(not self.next_operation, "Operation does not support appended operation!")
-	self.abort = false
-	self:do_plugins(self, "init")
 	
 	-- get deposit type
 	local success, data = Turtle.Rel.inspect(self.initial_orientation)
@@ -186,8 +217,6 @@ function Mine.Operation.Deposit:run()
 	while not action_stack:is_empty() do
 		action_stack:pop()()
 	end
-	
-	return self
 end
 
 
@@ -212,10 +241,7 @@ function Mine.Operation.BranchS.new(branch_length, branch_num, branch_separation
 	return result
 end
 
-function Mine.Operation.BranchS:run()
-	self.abort = false
-	self:do_plugins(self, "init")
-	
+function Mine.Operation.BranchS:run_impl()
 	-- branching including deposits
 	local branch_helper = function(length)
 		self.way_along_branch = 0
@@ -246,49 +272,43 @@ function Mine.Operation.BranchS:run()
 			self.current_right = not self.current_right
 		end
 	end
-	
-	if self.next_operation then self.next_operation:run() else self:goto_start() end
 end
 
-function Mine.Operation.BranchS:goto_start()
+function Mine.Operation.BranchS:goto_start_impl()
 	if self.digging_main_branch then
 		-- digging main branch
 		if self.current_n % 2 == 1 then
 			-- way to opposite side
 			Turtle.Rel.rotate_by(2)
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 		else
 			-- way to correct side
-			Turtle.Rel.move(self.branch_length - self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.branch_length - self.way_along_branch, ORIENTATION_FRONT)
 		end
 	else
 		-- digging separation branch
 		if self.current_n % 2 == 1 then
 			-- on opposite side
 			Turtle.Rel.rotate_by(2)
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 			Turtle.Rel.rotate_by(if_(self.right, -1, 1))
-			Turtle.Rel.move(self.branch_length, ORIENTATION_FRONT, true)
+			self:move(self.branch_length, ORIENTATION_FRONT)
 		else
 			-- on correct side
 			Turtle.Rel.rotate_by(2)
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 			Turtle.Rel.rotate_by(if_(self.right, -1, 1))
 		end
 	end
 	
 	Turtle.Rel.rotate_by(if_(self.right, 1, -1))
-	Turtle.Rel.move((self.current_n - 1) * self.branch_separation, ORIENTATION_FRONT, true)
+	self:move((self.current_n - 1) * self.branch_separation, ORIENTATION_FRONT)
 	Turtle.Rel.rotate_by(if_(self.right, 1, -1))
-	
-	if self.parent_operation then self.parent_operation:goto_start() end
 end
 
-function Mine.Operation.BranchS:goto_mine()
-	if self.parent_operation then self.parent_operation:goto_mine() end
-
+function Mine.Operation.BranchS:goto_mine_impl()
 	Turtle.Rel.rotate_by(if_(self.right, 1, -1))
-	Turtle.Rel.move((self.current_n - 1) * self.branch_separation, ORIENTATION_FRONT, true)
+	self:move((self.current_n - 1) * self.branch_separation, ORIENTATION_FRONT)
 	Turtle.Rel.rotate_by(if_(self.right, 1, -1))
 
 	if self.digging_main_branch then
@@ -296,23 +316,23 @@ function Mine.Operation.BranchS:goto_mine()
 		if self.current_n % 2 == 1 then
 			-- way to opposite side
 			Turtle.Rel.rotate_by(2)
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 		else
 			-- way to correct side
-			Turtle.Rel.move(self.branch_length - self.way_along_branch, ORIENTATION_BACK, ORIENTATION_FRONT, true)
+			self:move(self.branch_length - self.way_along_branch, ORIENTATION_BACK)
 		end
 	else
 		-- digging separation branch
 		if self.current_n % 2 == 1 then
 			-- on opposite side
 			Turtle.Rel.rotate_by(2)
-			Turtle.Rel.move(self.branch_length, ORIENTATION_FRONT, true)
+			self:move(self.branch_length, ORIENTATION_FRONT)
 			Turtle.Rel.rotate_by(if_(self.right, 1, -1))
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 		else
 			-- on correct side
 			Turtle.Rel.rotate_by(if_(self.right, -1, 1))
-			Turtle.Rel.move(self.way_along_branch, ORIENTATION_FRONT, true)
+			self:move(self.way_along_branch, ORIENTATION_FRONT)
 		end
 	end
 end
@@ -350,10 +370,7 @@ function Mine.Operation.Box.new(width, height, length)
 	return result
 end
 
-function Mine.Operation.Box:run()
-	self.abort = false
-	self:do_plugins(self, "init")
-	
+function Mine.Operation.Box:run_impl()
 	-- helper function
 	local function dig_layer(height, length)
 		assert(math.abs(height) <= 3 and height ~= 0, "Invalid layer height!")
@@ -430,25 +447,19 @@ function Mine.Operation.Box:run()
 			self.width = -self.width
 		end
 	end
-	
-	if self.next_operation then self.next_operation:run() else self:goto_start() end
 end
 
-function Mine.Operation.Box:goto_start()
+function Mine.Operation.Box:goto_start_impl()
 	Turtle.Rel.rotate_by(-self.rel_rotation)
-	Turtle.Rel.move(self.rel_location:get(0), ORIENTATION_LEFT, true)
-	Turtle.Rel.move(self.rel_location:get(2), ORIENTATION_BACK, true)
-	Turtle.Rel.move(self.rel_location:get(1), ORIENTATION_DOWN, true)
-	
-	if self.parent_operation then self.parent_operation:goto_start() end
+	self:move(self.rel_location:get(0), ORIENTATION_LEFT, true)
+	self:move(self.rel_location:get(2), ORIENTATION_BACK, true)
+	self:move(self.rel_location:get(1), ORIENTATION_DOWN, true)
 end
 
-function Mine.Operation.Box:goto_mine()
-	if self.parent_operation then self.parent_operation:goto_mine() end
-
-	Turtle.Rel.move(self.rel_location:get(1), ORIENTATION_UP, true)
-	Turtle.Rel.move(self.rel_location:get(2), ORIENTATION_FRONT, true)
-	Turtle.Rel.move(self.rel_location:get(0), ORIENTATION_RIGHT, true)
+function Mine.Operation.Box:goto_mine_impl()
+	self:move(self.rel_location:get(1), ORIENTATION_UP, true)
+	self:move(self.rel_location:get(2), ORIENTATION_FRONT, true)
+	self:move(self.rel_location:get(0), ORIENTATION_RIGHT, true)
 	Turtle.Rel.rotate_by(self.rel_rotation)
 end
 
@@ -479,10 +490,7 @@ function Mine.Operation.Line.new(length)
 	return result
 end
 
-function Mine.Operation.Line:run()
-	self.abort = false
-	self:do_plugins(self, "init")
-	
+function Mine.Operation.Line:run_impl()
 	self.length_moved = 0
 	for i = 1, math.abs(self.length) do
 		self:dig(if_(self.length > 0, ORIENTATION_FRONT, ORIENTATION_BACK))
@@ -490,20 +498,14 @@ function Mine.Operation.Line:run()
 		
 		if self.abort then break end
 	end
-	
-	if self.next_operation then self.next_operation:run() else self:goto_start() end
 end
 
-function Mine.Operation.Line:goto_start()
-	Turtle.Rel.move(self.length_moved * sign(self.length), ORIENTATION_BACK, true)
-	
-	if self.parent_operation then self.parent_operation:goto_start() end
+function Mine.Operation.Line:goto_start_impl()
+	self:move(self.length_moved * sign(self.length), ORIENTATION_BACK, true)
 end
 
-function Mine.Operation.Line:goto_mine()
-	if self.parent_operation then self.parent_operation:goto_mine() end
-
-	Turtle.Rel.move(self.length_moved * sign(self.length), ORIENTATION_FRONT, true)
+function Mine.Operation.Line:goto_mine_impl()
+	self:move(self.length_moved * sign(self.length), ORIENTATION_FRONT, true)
 end
 
 function Mine.Operation.Line:size()
@@ -531,23 +533,14 @@ function Mine.Operation.Offset.new(f_goto_start, f_goto_mine)
 	return result
 end
 
-function Mine.Operation.Offset:run()
-	self.abort = false
-	self:do_plugins(self, "init")
-	
-	self:goto_mine()
-	
-	if self.next_operation then self.next_operation:run() else self:goto_start() end
+function Mine.Operation.Offset:run_impl()
+	self:goto_mine_impl()
 end
 
-function Mine.Operation.Offset:goto_start()
+function Mine.Operation.Offset:goto_start_impl()
 	self.f_goto_start(function(length, orientation) return self:move(length, orientation) end)
-	
-	if self.parent_operation then self.parent_operation:goto_start() end
 end
 
-function Mine.Operation.Offset:goto_mine()
-	if self.parent_operation then self.parent_operation:goto_mine() end
-
+function Mine.Operation.Offset:goto_mine_impl()
 	self.f_goto_mine(function(length, orientation) return self:move(length, orientation) end)
 end

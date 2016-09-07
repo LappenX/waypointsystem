@@ -142,13 +142,14 @@ end
 
 function Mine.Plugin.MineSurroundingDeposits:post_move(calling_operation, orientation_moved)
 	assert(calling_operation, "No calling operation given!")
-	if self.disabled then return end
-	for orientation in self.orientations:it() do
-		local success, data = Turtle.Rel.inspect(orientation)
-		if success and self.deposit_filter:passes(Blocks.get(data.name), data.metadata) then
-			self.disabled = true
-			Mine.Operation.Deposit.new(orientation):set_parent_operation(calling_operation):run()
-			self.disabled = nil
+	if not calling_operation:isInGoto() and not self.disabled then
+		for orientation in self.orientations:it() do
+			local success, data = Turtle.Rel.inspect(orientation)
+			if success and self.deposit_filter:passes(Blocks.get(data.name), data.metadata) then
+				self.disabled = true
+				Mine.Operation.Deposit.new(orientation):set_parent_operation(calling_operation):run()
+				self.disabled = nil
+			end
 		end
 	end
 end
@@ -167,7 +168,7 @@ function Mine.Plugin.DropExcessBlocks.new(drop_filter, drop_interval)
 	setmetatable(result, Mine.Plugin.DropExcessBlocks)
 	
 	result.drop_filter = drop_filter
-	result.drop_interval = drop_interval
+	result.drop_interval = drop_interval or 8
 	
 	return result
 end
@@ -210,7 +211,7 @@ function Mine.Plugin.UnloadAtWaypoint.new(storage_wp)
 end
 
 function Mine.Plugin.UnloadAtWaypoint:init()
-	assert(self.plugin_operation.goto_start and self.plugin_operation.goto_mine, "Operation does not support this plugin!")
+	assert(self.plugin_operation.goto_start_impl and self.plugin_operation.goto_mine_impl, "Operation does not support this plugin!")
 	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated!")
 	assert(Waypoint.isCalibrated(), "Waypoint must be calibrated!")
 end
