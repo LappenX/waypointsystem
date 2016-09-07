@@ -1,21 +1,23 @@
 loader.include("api/util/string.lua")
 
+local SEPARATOR = ";"
+
 local function format_(str, type_)
-	return tostring(str:len()) .. ":" .. type_ .. ":" .. str
+	return tostring(str:len()) .. SEPARATOR .. type_ .. SEPARATOR .. str
 end
 
 local function parse(str)
-	local colon_pos = str:find(":")
-	assert(colon_pos, "Invalid serialization!")
+	local colon_pos = findFirst(str, SEPARATOR)
+	assert(colon_pos, "Invalid serialization! (1, len=" .. tostring(string.len(str)) .. ")")
 	local length = tonumber(str:sub(1, colon_pos - 1))
 	str = str:sub(colon_pos + 1)
-	
-	colon_pos = str:find(":")
-	assert(colon_pos, "Invalid serialization!")
+
+	colon_pos = findFirst(str, SEPARATOR)
+	assert(colon_pos, "Invalid serialization! (2, len=" .. tostring(string.len(str)) .. ")")
 	local type_ = str:sub(1, colon_pos - 1)
 	assert(type_)
 	str = str:sub(colon_pos + 1)
-	
+
 	local rest = str:sub(length + 1)
 	assert(rest)
 	str = str:sub(1, length)
@@ -50,6 +52,7 @@ function serialize(obj)
 end
 
 function deserialize(str)
+	assert(string.len(str) > 0, "Cannot deserialize an empty string!")
 	str = trim(str)
 	
 	if str == "nil" then -- nil
@@ -65,18 +68,18 @@ function deserialize(str)
 		elseif type_ == "string" then
 			return str, rest
 		elseif type_ == "boolean" then
-			assert(str == "true" or str == "false", "Invalid serialization!")
+			assert(str == "true" or str == "false", "Invalid serialization! (4)")
 			local bool = str == "true"
 			return bool, rest
 		elseif type_ == "table" then
-			assert(string.char(str:byte(1)) == "{" and string.char(str:byte(str:len())) == "}", "Invalid serialization!")
+			assert(string.char(str:byte(1)) == "{" and string.char(str:byte(str:len())) == "}", "Invalid serialization! (6)")
 			
 			local result = {}
 			local elements_string = str:sub(2, str:len() - 1)
 			while elements_string ~= "" do
 				local k, v, rest_k, rest_v
 				k, rest_k = deserialize(elements_string)
-				assert(starts_with(rest_k, " -> "), "Invalid serialization!")
+				assert(starts_with(rest_k, " -> "), "Invalid serialization! (5)")
 				v, rest_v = deserialize(rest_k:sub(5))
 				elements_string = rest_v
 				if starts_with(elements_string, "\n") then elements_string = elements_string:sub(2) end
@@ -86,7 +89,7 @@ function deserialize(str)
 			
 			return result, rest
 		else
-			error("Invalid serialization!")
+			error("Invalid serialization! (3, type='" .. type_ .. "'")
 		end
 	end
 end

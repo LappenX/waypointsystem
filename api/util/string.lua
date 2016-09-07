@@ -14,6 +14,15 @@ function split(str, splitter)
 	return result
 end
 
+function findFirst(str, pattern)
+	for i = 1, str:len() do
+		if str:sub(i, i + pattern:len() - 1) == pattern then
+			return i
+		end
+	end
+	return nil
+end
+
 function toString(obj)
 	if type(obj) == "table" then
 		local result = "{"
