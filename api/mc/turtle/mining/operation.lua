@@ -3,8 +3,19 @@
 Mine.Operation.Deposit.new(initial_orientation)
 Mine.Operation.BranchS.new(branch_length, branch_num, branch_separation, right)
 Mine.Operation.Box.new(width, height, length)
+Mine.Operation.Line.new(length)
+Mine.Operation.Offset.new(f_goto_start, f_goto_mine)
+
+
+
 
 function Mine.Operation:add_plugin(plugin)
+function Mine.Operation:append(next_operation)
+
+virtual function Mine.Operation:run()
+virtual function Mine.Operation:goto_start()
+virtual function Mine.Operation:goto_mine()
+virtual function Mine.Operation:size()
 
 ]]--
 

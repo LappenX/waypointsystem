@@ -8,6 +8,7 @@ function Waypoint.get(id)
 function Waypoint.add(wp)
 function Waypoint.calibrate(wp)
 function Waypoint.isCalibrated()
+function Waypoint.makeHere(id)
 
 function Waypoint.goto(target_wp)
 

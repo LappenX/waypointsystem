@@ -3,8 +3,17 @@
 Mine.Plugin.RefuelLava.new(abort_on_fuel_limit)
 Mine.Plugin.MineSurroundingDeposits.new(orientations, deposit_filter)
 Mine.Plugin.DropExcessBlocks.new(drop_filter, drop_interval)
-Mine.Plugin.UnloadAtWaypoint.new(storage_wp)
+Mine.Plugin.UnloadAtWaypoint.new(storage_wp) // storage_wp:has_plugin(Waypoint.Plugin.Storage)
 Mine.Plugin.EvadeTurtles.new(timeout)
+
+
+
+
+virtual function Mine.Plugin:init()
+virtual function Mine.Plugin:pre_dig(calling_operation, orientation, block_id, block_metadata)
+virtual function Mine.Plugin:post_dig(calling_operation, orientation, block_id, block_metadata)
+virtual function Mine.Plugin:pre_move(calling_operation, orientation_move)
+virtual function Mine.Plugin:post_move(calling_operation, orientation_moved)
 
 ]]--
 
