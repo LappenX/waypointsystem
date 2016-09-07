@@ -116,6 +116,7 @@ function Mine.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, block_
 				local file = fs.open("local/turtle_evade.log", "a")
 				file.writeLine("Failed evading with: location=" .. tostring(Turtle.Abs.getLocation()) .. " calling_operation=" .. tostring(calling_operation.name))
 				file.close()
+				assert(false)
 				break
 			end
 		end
@@ -204,6 +205,7 @@ function Mine.Plugin.UnloadAtWaypoint.new(storage_wp)
 	local result = {}
 	setmetatable(result, Mine.Plugin.UnloadAtWaypoint)
 	
+	assert(storage_wp, "No waypoint given!")
 	assert(storage_wp:has_plugin(Waypoint.Plugin.Storage), "Waypoint must have Storage plugin!")
 	result.storage_wp = storage_wp
 	
@@ -218,7 +220,7 @@ end
 
 function Mine.Plugin.UnloadAtWaypoint:post_dig(calling_operation, orientation, block_id, block_metadata)
 	assert(calling_operation, "No calling operation given")
-	if not calling_operation.goto_start or not calling_operation.goto_mine then return end
+	if not calling_operation.goto_start or not calling_operation.goto_mine or calling_operation:isInGoto() then return end
 	
 	local inventory_full = true -- TODO when to empty inventory
 	for i = 1, 16 do
