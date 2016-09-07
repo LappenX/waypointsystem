@@ -84,6 +84,10 @@ Turtle.Inv = {}
 
 
 
+local turtle_location, turtle_rotation
+local turtle_calibrated = false
+
+
 
 
 local LOG_FILE = "local/turtle.log"
@@ -99,6 +103,7 @@ local function turtle_log()
 	if Turtle.Abs.isCalibrated() then
 		local file = fs.open(LOG_FILE, "w")
 		file.writeLine("location=" .. tostring(Turtle.Abs.getLocation()))
+		file.writeLine("rotation=" .. tostring(turtle_rotation))
 		file.close()
 	end
 end
@@ -107,8 +112,7 @@ end
 
 
 
-local turtle_location, turtle_rotation
-local turtle_calibrated = false
+
 
 local pending_rotation = 0
 local function finalize_rotation()
