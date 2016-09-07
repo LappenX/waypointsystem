@@ -305,6 +305,7 @@ function Turtle.Rel.move_dim(distance, dim, dig, always_forward)
 	
 	-- movement
 	for i = 1, math.abs(distance) do
+		assert(turtle.getFuelLevel() > 0, "No fuel left!")
 		while not f_move() do
 			-- in x-direction use turtle.back till blocked, then turn around and use turtle.forward
 			if dim == 0 and distance < 0 and not turned_x and not always_forward then

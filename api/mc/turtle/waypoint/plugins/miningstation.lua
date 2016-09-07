@@ -100,7 +100,7 @@ function Waypoint.Plugin.MiningStation:run()
 		
 		offset_op:run()
 		-- returned to disk drive
-		num= num + 1
+		num = num + 1
 		print("Finished. Fuel consumption: " .. tostring(initial_fuel - turtle.getFuelLevel()))
 	end
 	
