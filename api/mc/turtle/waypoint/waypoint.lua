@@ -24,7 +24,7 @@ loader.include("api/util/datastructs/map.lua")
 loader.include("api/util/functional.lua")
 loader.include("api/util/string.lua")
 
-WAYPOINTS_FILE = "data/waypoints.txt"
+WAYPOINTS_FILE = "wp/waypoints.txt"
 WAYPOINTS_FILE_COMMENT = "#"
 
 

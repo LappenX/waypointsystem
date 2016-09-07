@@ -132,7 +132,7 @@ function Turtle.Abs.calibrate(x, y, z, rot)
 end
 
 function Turtle.Abs.isCalibrated()
-	return turtle_calibrated
+	return not not turtle_calibrated
 end
 
 function Turtle.Abs.getLocation()

@@ -41,6 +41,7 @@ function Mine.Operation:add_plugin(plugin)
 	if not self.plugins then self.plugins = ArrayList.new() end
 	plugin.plugin_operation = self
 	self.plugins:append(plugin)
+	return self
 end
 
 function Mine.Operation:set_parent_operation(operation)
