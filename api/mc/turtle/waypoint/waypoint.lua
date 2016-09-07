@@ -72,6 +72,11 @@ function Waypoint.add_connection(from_wp, to_wp)
 	to_wp.incoming:append(from_wp)
 end
 
+function Waypoint.makeHere(id)
+	Waypoint.add(Waypoint.new(id, Turtle.Abs.getLocation(), ArrayList.new(), ArrayList.new()))
+	Waypoint.calibrate(Waypoint.get(id))
+end
+
 local function load_waypoints()
 	if wps_loaded then return end
 	wps_loaded = true
