@@ -104,19 +104,23 @@ function Mine.Operation:run()
 	if self.next_operation then
 		self.next_operation:run()
 	elseif self.goto_start_impl then
-		self:goto_start()
+		self:goto_start(true)
 	end
 	
 	return self
 end
 
-function Mine.Operation:goto_start()
-	self.is_in_goto = true
+function Mine.Operation:goto_start(after_run)
+	if not after_run then
+		assert(not self.is_in_goto, "Cannot go to start without going to mine first!")
+		self.is_in_goto = true
+	end
 	self:goto_start_impl()
-	if self.parent_operation then self.parent_operation:goto_start() end
+	if self.parent_operation then self.parent_operation:goto_start(after_run) end
 end
 
 function Mine.Operation:goto_mine()
+	assert(self.is_in_goto, "Cannot go to mine without going to start first!")
 	if self.parent_operation then self.parent_operation:goto_mine() end
 	self:goto_mine_impl()
 	self.is_in_goto = false
@@ -125,6 +129,11 @@ end
 function Mine.Operation:isInGoto()
 	return self.is_in_goto
 end
+
+
+
+
+
 
 
 
