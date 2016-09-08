@@ -138,8 +138,8 @@ function CoordinateSystem.new(location, rotation, is_world)
 	return result
 end
 
-function CoordinateSystem:__toString()
-	return "[loc=" .. tostring(self.location) .. ", rot=" .. tostring(self.rotation) .. "]"
+CoordinateSystem.__tostring = function (cs)
+	return "[loc=" .. tostring(cs.location) .. ", rot=" .. tostring(cs.rotation) .. "]"
 end
 
 function CoordinateSystem:getLocation()
@@ -682,6 +682,21 @@ function Turtle.Inv.find_first(item_id, item_metadata)
 		end
 	end
 	return nil
+end
+
+function Turtle.Inv.amount_of_id_mt(item_id, item_metadata)
+	return Turtle.Inv.amount_of(function(other_id, other_metadata) return item_id == other_id and (not item_metadata or item_metadata == other_metadata) end)
+end
+
+function Turtle.Inv.amount_of(filter)
+	local amount = 0
+	for i = 1, 16 do
+		local data = turtle.getItemDetail(i)
+		if data and data.count > 0 and filter:passes(Items.get(data.name), data.damage) then
+			amount = amount + data.count
+		end
+	end
+	return amount
 end
 
 function Turtle.Inv.find_first_passing(filter) -- filter.passes(item_id, item_metadata)
