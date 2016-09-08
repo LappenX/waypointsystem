@@ -147,7 +147,7 @@ function CoordinateSystem:getLocation()
 end
 
 function CoordinateSystem:getRotation()
-	return self.rotation + pending_rotation
+	return mod_(self.rotation + pending_rotation, 4)
 end
 
 function CoordinateSystem:isWorldCoordinateSystem()
@@ -423,7 +423,7 @@ function Turtle.Rel.move_dim(distance, dim, dig, always_forward)
 		if dim == 1 then
 			cs.location = cs.location + Vec.new(0, distance, 0)
 		else
-			cs.location = cs.location + Vec3.new_by_rotation(mod_(cs.rotation + if_(dim == 2, 1, 0), 4), distance)
+			cs.location = cs.location + Vec3.new_by_rotation(mod_(cs:getRotation() + if_(dim == 2, 1, 0), 4), distance)
 		end
 	end
 	
