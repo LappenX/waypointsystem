@@ -1,3 +1,5 @@
+loader.include("api/util/datastructs/map.lua")
+
 Waypoint.Plugin.Storage = {}
 Waypoint.Plugin.Storage.__index = Waypoint.Plugin.Storage
 setmetatable(Waypoint.Plugin.Storage, {__index = Waypoint.Plugin})
