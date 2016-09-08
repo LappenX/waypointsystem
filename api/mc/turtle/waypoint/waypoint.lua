@@ -255,7 +255,15 @@ function Waypoint:goto()
 end
 
 function Waypoint:plugin(plugin_type)
-	return self.plugins:get(plugin_type)
+	if plugin_type then
+		local result = self.plugins:get(plugin_type)
+		assert(result, "Plugin not found!")
+		return result
+	else
+		assert(self.plugins:size() == 1, "Invalid number of plugins for this call!")
+		return self.plugins:values_it()()
+	end
+	return 
 end
 
 function Waypoint:has_plugin(plugin_type)
