@@ -30,7 +30,7 @@ function AndFilter.new(filter1, filter2)
 end
 
 function AndFilter:passes(...)
-	return filter1:passes(unpack(arg)) and filter2:passes(unpack(arg))
+	return self.filter1:passes(unpack(arg)) and self.filter2:passes(unpack(arg))
 end
 
 
@@ -48,7 +48,7 @@ function OrFilter.new(filter1, filter2)
 end
 
 function OrFilter:passes(...)
-	return filter1:passes(unpack(arg)) or filter2:passes(unpack(arg))
+	return self.filter1:passes(unpack(arg)) or self.filter2:passes(unpack(arg))
 end
 
 
@@ -65,7 +65,7 @@ function NotFilter.new(filter)
 end
 
 function NotFilter:passes(...)
-	return not filter:passes(unpack(arg))
+	return not self.filter:passes(unpack(arg))
 end
 
 
