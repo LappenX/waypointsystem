@@ -88,7 +88,7 @@ function Waypoint.add_connection(from_wp, to_wp)
 end
 
 function Waypoint.makeHere(id)
-	Waypoint.add(Waypoint.new(id, Turtle.Abs.getLocation(), ArrayList.new(), ArrayList.new()))
+	Waypoint.add(Waypoint.new(id, Turtle.Abs.getWorldLocation(), ArrayList.new(), ArrayList.new()))
 	Waypoint.calibrate(Waypoint.get(id))
 end
 
@@ -217,18 +217,18 @@ function Waypoint.calibrate(wp, rotation)
 	current_wp = nil
 	if wp then
 		current_wp = wp
-		if Turtle.Abs.isCalibrated() then
-			assert(current_wp.location == Turtle.Abs.getLocation(), "Waypoint location and turtle location must be equal!")
+		if Turtle.Abs.hasWorldCoord() then
+			assert(current_wp.location == Turtle.Abs.getWorldLocation(), "Waypoint location and turtle location must be equal!")
 		else
 			assert(rotation, "Rotation must be given since turtle is not calibrated!")
-			Turtle.Abs.calibrate(wp.location:get(0), wp.location:get(1), wp.location:get(2), rotation)
+			Turtle.Abs.pushCoord(wp.location:get(0), wp.location:get(1), wp.location:get(2), rotation, true)
 		end
 	else
-		assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use waypoints!")
-		assert(not rotation or rotation == Turtle.Abs.getRotation(), "Given rotation and turtle rotation must be equal!")
+		assert(Turtle.Abs.hasWorldCoord(), "Turtle must be calibrated to use waypoints!")
+		assert(not rotation or rotation == Turtle.Abs.getWorldRotation(), "Given rotation and turtle rotation must be equal!")
 		
 		for wp2 in wps:values_it() do
-			if wp2.location == Turtle.Abs.getLocation() then
+			if wp2.location == Turtle.Abs.getWorldLocation() then
 				current_wp = wp2
 				break
 			end
@@ -247,7 +247,7 @@ end
 
 function Waypoint:goto()
 	assert(Waypoint.isCalibrated(), "Waypoint location not calibrated!")
-	assert(Turtle.Abs.getLocation() == Waypoint.current().location, "Incorrect waypoint calibration!")
+	assert(Turtle.Abs.getWorldLocation() == Waypoint.current().location, "Incorrect waypoint calibration!")
 	
 	-- calculate routing table if necessary
 	if not current_wp.routing_table:contains_key(self) then 
@@ -263,7 +263,7 @@ function Waypoint:goto()
 		-- move to next wp without digging
 		Turtle.Abs.move_to(next_wp.location, false)
 		current_wp = next_wp
-		assert(Turtle.Abs.getLocation() == current_wp.location, "Failed moving between waypoints!")
+		assert(Turtle.Abs.getWorldLocation() == current_wp.location, "Failed moving between waypoints!")
 	end
 	
 	return self
@@ -302,7 +302,7 @@ Waypoint.Plugin = {}
 Waypoint.Plugin.__index = Waypoint.Plugin
 
 function Waypoint.Plugin:goto()
-	self.return_rotation = Turtle.Abs.getRotation()
+	self.return_rotation = Turtle.Abs.getWorldRotation()
 	self.return_wp = Waypoint.current()
 	self.wp:goto()
 	return self

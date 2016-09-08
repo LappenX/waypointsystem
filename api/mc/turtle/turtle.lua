@@ -82,14 +82,6 @@ Turtle.Inv = {}
 
 
 
-
-
-local turtle_location, turtle_rotation
-local turtle_calibrated = false
-
-
-
-
 local LOG_FILE = "local/turtle.log"
 local log_enabled = false
 
@@ -100,14 +92,112 @@ end
 local function turtle_log()
 	if not log_enabled then return end
 	
-	if Turtle.Abs.isCalibrated() then
+	if Turtle.Abs.hasWorldCoord() then
 		local file = fs.open(LOG_FILE, "w")
-		file.writeLine("location=" .. tostring(Turtle.Abs.getLocation()))
-		file.writeLine("rotation=" .. tostring(turtle_rotation))
+		file.writeLine("turtle: " .. tostring(Turtle.Abs.getWorldCoord()))
 		file.close()
 	end
 end
 
+
+
+
+
+CoordinateSystem = {}
+CoordinateSystem.__index = CoordinateSystem
+
+function CoordinateSystem.new(location, rotation, is_world)
+	local result = {}
+	setmetatable(result, CoordinateSystem)
+	
+	result.location = location
+	result.rotation = rotation
+	result.is_world = is_world or false
+
+	return result
+end
+
+function CoordinateSystem:__toString()
+	return "[loc=" .. tostring(self.location) .. ", rot=" .. tostring(self.rotation) .. "]"
+end
+
+function CoordinateSystem:getLocation()
+	return self.location
+end
+
+function CoordinateSystem:getRotation()
+	return self.rotation
+end
+
+function CoordinateSystem:isWorldCoordinateSystem()
+	return self.is_world
+end
+
+
+
+
+
+
+
+Turtle.coord_stack = ArrayList.new()
+
+function Turtle.Abs.hasWorldCoord()
+	for cs in Turtle.coord_stack:it() do
+		if cs:isWorldCoordinateSystem() then
+			return true
+		end
+	end
+	return false
+end
+
+function Turtle.Abs.getWorldCoord()
+	for cs in Turtle.coord_stack:it() do
+		if cs:isWorldCoordinateSystem() then
+			return cs
+		end
+	end
+	error("Turtle does not have world coordinates!")
+end
+
+function Turtle.Abs.getWorldLocation()
+	return Turtle.Abs.getWorldCoord():getLocation()
+end
+
+function Turtle.Abs.getWorldRotation()
+	return Turtle.Abs.getWorldCoord():getRotation()
+end
+
+function Turtle.Abs.pushCoord(x, y, z, f, world)
+	x = x or 0
+	y = y or 0
+	z = z or 0
+	f = f or 0
+	world = world or false
+	assert(not (world and Turtle.Abs.hasWorldCoord()), "Turtle already has world coordinates!")
+	Turtle.coord_stack:push(CoordinateSystem.new(Vec.new(x, y, z), f, world))
+end
+
+function Turtle.Abs.popCoord()
+	assert(not (world and Turtle.Abs.hasWorldCoord()), "Turtle does not have any coordinates!")
+	Turtle.coord_stack:pop()
+end
+
+function Turtle.Abs.hasCoord()
+	return not Turtle.coord_stack:is_empty()
+end
+
+function Turtle.Abs.getCoord()
+	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
+	return Turtle.coord_stack:top()
+end
+
+function Turtle.Abs.getLocation()
+	return Turtle.Abs.getCoord():getLocation()
+end
+
+function Turtle.Abs.getRotation()
+	return Turtle.Abs.getCoord():getRotation()
+end
 
 
 
@@ -118,8 +208,10 @@ local pending_rotation = 0
 local function finalize_rotation()
 	pending_rotation = mod_(pending_rotation, 4)
 	
-	-- adjust rotation variable
-	if turtle_calibrated then turtle_rotation = mod_(turtle_rotation + pending_rotation, 4) end
+	-- adjust coordinate systems
+	for cs in Turtle.coord_stack:it() do
+		cs.rotation = mod_(cs.rotation + pending_rotation, 4)
+	end
 	
 	if (pending_rotation == 3) then
 		turtle.turnLeft()
@@ -129,28 +221,11 @@ local function finalize_rotation()
 	pending_rotation = 0
 end
 
-function Turtle.Abs.calibrate(x, y, z, rot)
-	turtle_location = Vec.new(x, y, z)
-	turtle_rotation = rot
-	turtle_calibrated = true
-end
 
-function Turtle.Abs.isCalibrated()
-	return not not turtle_calibrated
-end
 
-function Turtle.Abs.getLocation()
-	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use absolute movement!")
-	return turtle_location
-end
-
-function Turtle.Abs.getRotation()
-	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use absolute movement!")
-	return mod_(turtle_rotation + pending_rotation, 4)
-end
 
 function Turtle.Abs.move_by(vec, dig)
-	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated to use absolute movement!")
+	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
 
 	local cur_loc = Turtle.Abs.getLocation()
 	local target_loc = cur_loc + vec
@@ -174,6 +249,7 @@ function Turtle.Abs.move_to(target_location, dig)
 end
 
 function Turtle.Abs.rotate_to(target_rot)
+	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
 	assert(target_rot >= 0 and target_rot < 6, "Invalid rotation!")
 	if target_rot < 4 then Turtle.Rel.rotate_by(target_rot - Turtle.Abs.getRotation()) end
 end
@@ -214,6 +290,7 @@ function Turtle.Abs.opposite(rotation)
 end
 
 function Turtle.Abs.to_orientation(rotation)
+	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
 	if rotation == ROTATION_UP then return ORIENTATION_UP end
 	if rotation == ROTATION_DOWN then return ORIENTATION_DOWN end
 	return select_(mod_(rotation - Turtle.Abs.getRotation(), 4),
@@ -223,6 +300,7 @@ function Turtle.Abs.to_orientation(rotation)
 		ORIENTATION_LEFT
 	)
 end
+
 
 
 
@@ -251,9 +329,6 @@ function Turtle.backtrace()
 	
 	trace_stacks:pop()
 end
-
-
-
 
 
 
@@ -323,12 +398,12 @@ function Turtle.Rel.move_dim(distance, dim, dig, always_forward)
 	if turned_x then Turtle.Rel.rotate_by(2) end
 	if dim == 2 then Turtle.Rel.rotate_by(if_(distance > 0, -1, 1)) end
 	
-	-- adjust location variable
-	if turtle_calibrated then
+	-- adjust coordinate systems
+	for cs in Turtle.coord_stack:it() do
 		if dim == 1 then
-			turtle_location = turtle_location + Vec.new(0, distance, 0)
+			cs.location = cs.location + Vec.new(0, distance, 0)
 		else
-			turtle_location = turtle_location + Vec3.new_by_rotation(mod_(Turtle.Abs.getRotation() + if_(dim == 2, 1, 0), 4), distance)
+			cs.location = cs.location + Vec3.new_by_rotation(mod_(cs.rotation + if_(dim == 2, 1, 0), 4), distance)
 		end
 	end
 	

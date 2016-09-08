@@ -6,7 +6,7 @@ function Waypoint.Plugin.AgricultureStation.new(operation_rotation, right, width
 	local result = {}
 	setmetatable(result, Waypoint.Plugin.AgricultureStation)
 	
-	result.operation = Mine.Operation.BranchS.new(length, width, 1, right)
+	result.operation = Operation.MineBranchS.new(length, width, 1, right)
 	result.operation_rotation = operation_rotation
 	result.rectangle_size = rectangle_size
 	

@@ -16,7 +16,7 @@ end
 
 function Operation.Plugin.UnloadAtWaypoint:init()
 	assert(self.plugin_operation.goto_start_impl and self.plugin_operation.goto_mine_impl, "Operation does not support this plugin!")
-	assert(Turtle.Abs.isCalibrated(), "Turtle must be calibrated!")
+	assert(Turtle.Abs.hasWorldCoord(), "Turtle must be calibrated!")
 	assert(Waypoint.isCalibrated(), "Waypoint must be calibrated!")
 end
 
