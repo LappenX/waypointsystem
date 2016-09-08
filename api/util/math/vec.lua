@@ -265,7 +265,7 @@ Vec.__div = function (vec, b)
 end
 
 Vec.__tostring = function (vec)
-	local result = ""
+	local result = "["
 	local first = true
 	for value in vec:it() do
 		if first then
@@ -275,6 +275,7 @@ Vec.__tostring = function (vec)
 		end
 		result = result .. tostring(round(value, 2))
 	end
+	result = result .. "]"
 	return result
 end
 
