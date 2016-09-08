@@ -51,18 +51,18 @@ function Mine.Operation:set_parent_operation(operation)
 	return self
 end
 
-function Mine.Operation:do_plugins(calling_operation, func_name, ...)
+function Mine.Operation:do_plugins(calling_operation, from_parent, func_name, ...)
 	assert(calling_operation, "No calling operation given!")
 	if not self.plugins then self.plugins = ArrayList.new() end
 	
 	for plugin in self.plugins:it() do
 		local func = plugin[func_name]
-		if func then
+		if func and not (from_parent and plugin.not_as_parent) then
 			func(plugin, calling_operation, unpack(arg)) -- oop call
 		end
 	end
 
-	if self.parent_operation and func_name ~= "init" then self.parent_operation:do_plugins(calling_operation, func_name, unpack(arg)) end
+	if self.parent_operation and func_name ~= "init" then self.parent_operation:do_plugins(calling_operation, true, func_name, unpack(arg)) end
 end
 
 function Mine.Operation:append(next_operation)
@@ -77,27 +77,27 @@ end
 function Mine.Operation:dig(orientation)
 	local success, data = Turtle.Rel.inspect(orientation)
 	if success then
-		self:do_plugins(self, "pre_dig", orientation, Blocks.get(data.name), data.metadata)
+		self:do_plugins(self, false, "pre_dig", orientation, Blocks.get(data.name), data.metadata)
 		turtle.select(1)
 		Turtle.Rel.dig(orientation, true)
-		self:do_plugins(self, "post_dig", orientation, Blocks.get(data.name), data.metadata)
+		self:do_plugins(self, false, "post_dig", orientation, Blocks.get(data.name), data.metadata)
 	end
 end
 
 function Mine.Operation:move(length, orientation, f_pre, f_post)
 	for i = 1, math.abs(length) do
 		self:dig(if_(length > 0, orientation, Turtle.Rel.opposite(orientation)))
-		self:do_plugins(self, "pre_move", orientation)
+		self:do_plugins(self, false, "pre_move", orientation)
 		if f_pre then f_pre() end
 		Turtle.Rel.move(sign(length), orientation, true)
 		if f_post then f_post() end
-		self:do_plugins(self, "post_move", orientation)
+		self:do_plugins(self, false, "post_move", orientation)
 	end
 end
 
 function Mine.Operation:run()
 	self.abort = false
-	self:do_plugins(self, "init")
+	self:do_plugins(self, false, "init")
 	
 	self:run_impl()
 	
@@ -115,6 +115,7 @@ function Mine.Operation:goto_start(after_run)
 		assert(not self.is_in_goto, "Cannot go to start without going to mine first!")
 		self.is_in_goto = true
 	end
+	assert(self.goto_start_impl, "Operation is not supported!")
 	self:goto_start_impl()
 	if self.parent_operation then self.parent_operation:goto_start(after_run) end
 end
