@@ -6,7 +6,7 @@ Blocks = {}
 BLOCKS_FILE = "data/block.csv"
 
 local loaded_blocks = false
-local blocks = ListMap.new()
+local blocks = TableMap.new()
 
 function Blocks.load()
 	if loaded_blocks then return end
@@ -41,7 +41,7 @@ Items = {}
 
 ITEMS_FILE = "data/itempanel.csv"
 local loaded_items = false
-local items = ListMap.new()
+local items = TableMap.new()
 
 function Items.load()
 	if loaded_items then return end

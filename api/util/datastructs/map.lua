@@ -40,3 +40,4 @@ function Map:pairs_it()
 end
 
 loader.include("api/util/datastructs/map/listmap.lua")
+loader.include("api/util/datastructs/map/tablemap.lua")
