@@ -311,6 +311,16 @@ function Turtle.Abs.to_orientation(rotation)
 	)
 end
 
+function Turtle.Abs.to_rotation(orientation)
+	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
+	if orientation == ORIENTATION_UP then return ROTATION_UP end
+	if orientation == ORIENTATION_DOWN then return ROTATION_DOWN end
+	if orientation == ORIENTATION_FRONT then return Turtle.Abs.getRotation() end
+	if orientation == ORIENTATION_RIGHT then return mod_(Turtle.Abs.getRotation() + 1, 4) end
+	if orientation == ORIENTATION_BACK then return mod_(Turtle.Abs.getRotation() + 2, 4) end
+	if orientation == ORIENTATION_LEFT then return mod_(Turtle.Abs.getRotation() + 3, 4) end
+end
+
 
 
 
