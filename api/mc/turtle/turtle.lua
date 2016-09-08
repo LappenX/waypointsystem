@@ -574,6 +574,20 @@ function Turtle.Inv.find_first(item_id, item_metadata)
 	end
 	return nil
 end
+
+function Turtle.Inv.find_first_passing(filter) -- filter.passes(item_id, item_metadata)
+	assert(filter, "No filter given!")
+	assert(filter.passes, "Invalid filter given!")
+	
+	for i = 1, 16 do
+		local data = turtle.getItemDetail(i)
+		if data and filter:passes(Items.get(data.name), data.damage) then
+			return i
+		end
+	end
+	return nil
+end
+
 --[[
 function Turtle.Inv.take(item_id, item_metadata, amount, push_direction)
 	assert(push_direction or Turtle.Abs.isCalibrated(), "Turtle must be calibrated or push direction must be given!")
