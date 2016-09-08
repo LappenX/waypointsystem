@@ -72,3 +72,7 @@ function SinglyLinkedList:it()
 		if cur then return cur.value end
 	end
 end
+
+SinglyLinkedList.__tostring = function (list)
+	return list:toString(", ")
+end

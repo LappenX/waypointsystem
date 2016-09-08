@@ -52,3 +52,7 @@ function ArrayList:it()
 		if cur_index < self:size() then return self:get(cur_index) end
 	end
 end
+
+ArrayList.__tostring = function (list)
+	return list:toString(", ")
+end

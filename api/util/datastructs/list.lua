@@ -114,6 +114,10 @@ function List:toString(separator)
 	return result
 end
 
+List.__tostring = function (list)
+	return list:toString(", ")
+end
+
 
 function tolist(str, list, splitter)
 	if not list then list = ArrayList.new() end -- TODO generic list
