@@ -34,6 +34,10 @@ function Operation.MineDeposit:run_impl()
 		self.deposit_filter = EqualsFilter.new(deposit_block_id, if_(deposit_is_liquid, nil, data.metadata))
 	end
 	
+	Turtle.Abs.pushCoord()
+	
+	local empty_blocks = ArrayList.new()
+	empty_blocks:push(Turtle.Abs.getLocation())
 	
 	local action_stack = ArrayList.new()
 	function deposit_helper(orientation)
@@ -64,23 +68,34 @@ function Operation.MineDeposit:run_impl()
 			-- dig and move
 			self:dig(orientation)
 			self:move(1, orientation)
+			empty_blocks:push(Turtle.Abs.getLocation())
 			
 			-- recursion
-			for next_orientation = ORIENTATION_FRONT, ORIENTATION_LEFT do
-				if next_orientation ~= Turtle.Rel.opposite(orientation) then
-					success, data = Turtle.Rel.inspect(next_orientation)
-					
-					-- flowing/ still liquid fix
-					if success and deposit_is_liquid then
-						if Blocks.get(data.name) == 9 then data.name = Blocks.get(8) end -- water
-						if Blocks.get(data.name) == 11 then data.name = Blocks.get(10) end -- lava
-					end
-					
-					if success and self.deposit_filter:passes(Blocks.get(data.name), if_(deposit_is_liquid, nil, data.metadata)) then
-						action_stack:push(Turtle.backtrace)
-						action_stack:push(app(deposit_helper, next_orientation))
-						action_stack:push(Turtle.trace)
-					end
+			for next_orientation_ = ORIENTATION_FRONT, ORIENTATION_LEFT do
+				if next_orientation_ ~= Turtle.Rel.opposite(orientation) then
+					local next_orientation = next_orientation_
+					action_stack:push(Turtle.backtrace)
+					action_stack:push(function()
+						local next_location = Turtle.Abs.getLocation() + Vec3.new_by_rotation(Turtle.Abs.to_rotation(next_orientation))
+						if not empty_blocks:contains(next_location) then
+							success, data = Turtle.Rel.inspect(next_orientation)
+
+							-- flowing/ still liquid fix
+							if success and deposit_is_liquid then
+								if Blocks.get(data.name) == 9 then data.name = Blocks.get(8) end -- water
+								if Blocks.get(data.name) == 11 then data.name = Blocks.get(10) end -- lava
+							end
+							
+							if success and self.deposit_filter:passes(Blocks.get(data.name), if_(deposit_is_liquid, nil, data.metadata)) then
+								action_stack:push(Turtle.backtrace)
+								action_stack:push(app(deposit_helper, next_orientation))
+								action_stack:push(Turtle.trace)
+							else
+								empty_blocks:push(next_location)
+							end
+						end
+					end)
+					action_stack:push(Turtle.trace)
 				end
 			end
 		end
@@ -93,4 +108,6 @@ function Operation.MineDeposit:run_impl()
 	while not action_stack:is_empty() do
 		action_stack:pop()()
 	end
+	
+	Turtle.Abs.popCoord()
 end
