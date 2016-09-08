@@ -103,6 +103,27 @@ end
 
 
 
+local pending_rotation = 0
+local function finalize_rotation()
+	pending_rotation = mod_(pending_rotation, 4)
+	
+	-- adjust coordinate systems
+	for cs in Turtle.coord_stack:it() do
+		cs.rotation = mod_(cs.rotation + pending_rotation, 4)
+	end
+	
+	if (pending_rotation == 3) then
+		turtle.turnLeft()
+	elseif (pending_rotation > 0) then
+		repeat_(pending_rotation, turtle.turnRight)()
+	end
+	pending_rotation = 0
+end
+
+
+
+
+
 CoordinateSystem = {}
 CoordinateSystem.__index = CoordinateSystem
 
@@ -126,12 +147,16 @@ function CoordinateSystem:getLocation()
 end
 
 function CoordinateSystem:getRotation()
-	return self.rotation
+	return self.rotation + pending_rotation
 end
 
 function CoordinateSystem:isWorldCoordinateSystem()
 	return self.is_world
 end
+
+
+
+
 
 
 
@@ -204,22 +229,7 @@ end
 
 
 
-local pending_rotation = 0
-local function finalize_rotation()
-	pending_rotation = mod_(pending_rotation, 4)
-	
-	-- adjust coordinate systems
-	for cs in Turtle.coord_stack:it() do
-		cs.rotation = mod_(cs.rotation + pending_rotation, 4)
-	end
-	
-	if (pending_rotation == 3) then
-		turtle.turnLeft()
-	elseif (pending_rotation > 0) then
-		repeat_(pending_rotation, turtle.turnRight)()
-	end
-	pending_rotation = 0
-end
+
 
 
 
