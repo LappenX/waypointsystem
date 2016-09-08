@@ -3,13 +3,14 @@ loader.include("api/mc/turtle/operation.lua")
 Operation.Plugin.UnloadAtWaypoint = {}
 Operation.Plugin.UnloadAtWaypoint.__index = Operation.Plugin.UnloadAtWaypoint
 
-function Operation.Plugin.UnloadAtWaypoint.new(storage_wp)
+function Operation.Plugin.UnloadAtWaypoint.new(storage_wp, keep_amounts)
 	local result = {}
 	setmetatable(result, Operation.Plugin.UnloadAtWaypoint)
 	
 	assert(storage_wp, "No waypoint given!")
 	assert(storage_wp:has_plugin(Waypoint.Plugin.Storage), "Waypoint must have Storage plugin!")
 	result.storage_wp = storage_wp
+	result.keep_amounts = keep_amounts
 	
 	return result
 end
@@ -20,7 +21,7 @@ function Operation.Plugin.UnloadAtWaypoint:init()
 	assert(Waypoint.isCalibrated(), "Waypoint must be calibrated!")
 end
 
-function Operation.Plugin.UnloadAtWaypoint:post_dig(calling_operation, orientation, block_id, block_metadata)
+function Operation.Plugin.UnloadAtWaypoint:pre_move(calling_operation, orientation)
 	assert(calling_operation, "No calling operation given")
 	if not calling_operation.goto_start_impl or not calling_operation.goto_mine_impl or calling_operation:isInGoto() then return end
 	
@@ -37,7 +38,7 @@ function Operation.Plugin.UnloadAtWaypoint:post_dig(calling_operation, orientati
 	
 		-- mine -> mine_start -> unload inventory at storage wp -> mine_start -> mine
 		calling_operation:goto_start()
-		self.storage_wp:plugin(Waypoint.Plugin.Storage):goto():unloadAll():return_()
+		self.storage_wp:plugin(Waypoint.Plugin.Storage):goto():unloadAll(self.keep_amounts):return_()
 		calling_operation:goto_mine()
 		
 		print("Done!")
