@@ -51,6 +51,7 @@ function Vec.new_by_dims(dims, value)
 end
 
 function Vec3.new_by_rotation(rotation, length)
+	length = length or 1
 	if rotation == ROTATION_POSITIVE_Z then
 		return Vec.new(0, 0, length)
 	elseif rotation == ROTATION_NEGATIVE_X then
