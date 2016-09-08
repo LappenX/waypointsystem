@@ -83,7 +83,7 @@ function Waypoint.Plugin.MiningStation:run()
 		Turtle.Abs.rotate_to(self.operation_rotation)
 		
 		local size = self.operation:size()
-		local offset_op = Mine.Operation.Offset.new(
+		local offset_op = Operation.Offset.new(
 			function(f_move) -- f_goto_start
 				for i = 0, next_pos:dims() - 1 do
 					f_move(-math.abs(size:get_by_rotation(self.directions:get(i)) * next_pos:get(i)), Turtle.Abs.to_orientation(self.directions:get(i)))
@@ -95,7 +95,7 @@ function Waypoint.Plugin.MiningStation:run()
 				end
 			end
 		)
-		offset_op:add_plugin(Mine.Plugin.EvadeTurtles.new())
+		offset_op:add_plugin(Operation.Plugin.EvadeTurtles.new())
 		offset_op:append(self.operation)
 		
 		offset_op:run()
