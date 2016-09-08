@@ -90,3 +90,6 @@ function Items.get(identifier)
 end
 
 ORES = ArrayList.new({14, 15, 16, 21, 56, 73, 129, 153, 180, 209, 431})
+SAPLINGS = ArrayList.new({6, 210, 4205})
+LEAVES = ArrayList.new({18, 161, 211})
+LOGS = ArrayList.new({17, 162, 198, 204})
