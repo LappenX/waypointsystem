@@ -313,12 +313,13 @@ end
 
 function Turtle.Abs.to_rotation(orientation)
 	assert(Turtle.Abs.hasCoord(), "Turtle does not have coordinates!")
-	if orientation == ORIENTATION_UP then return ROTATION_UP end
-	if orientation == ORIENTATION_DOWN then return ROTATION_DOWN end
-	if orientation == ORIENTATION_FRONT then return Turtle.Abs.getRotation() end
-	if orientation == ORIENTATION_RIGHT then return mod_(Turtle.Abs.getRotation() + 1, 4) end
-	if orientation == ORIENTATION_BACK then return mod_(Turtle.Abs.getRotation() + 2, 4) end
-	if orientation == ORIENTATION_LEFT then return mod_(Turtle.Abs.getRotation() + 3, 4) end
+	if orientation == ORIENTATION_UP then return ROTATION_UP
+	elseif orientation == ORIENTATION_DOWN then return ROTATION_DOWN
+	elseif orientation == ORIENTATION_FRONT then return Turtle.Abs.getRotation()
+	elseif orientation == ORIENTATION_RIGHT then return mod_(Turtle.Abs.getRotation() + 1, 4)
+	elseif orientation == ORIENTATION_BACK then return mod_(Turtle.Abs.getRotation() + 2, 4)
+	elseif orientation == ORIENTATION_LEFT then return mod_(Turtle.Abs.getRotation() + 3, 4)
+	else error("Invalid orientation value!") end
 end
 
 
@@ -353,6 +354,19 @@ end
 
 
 
+
+
+
+
+function Turtle.Rel.orientation_to_string(orientation)
+	if orientation == ORIENTATION_FRONT then return "front"
+	elseif orientation == ORIENTATION_BACK then return "back"
+	elseif orientation == ORIENTATION_LEFT then return "left"
+	elseif orientation == ORIENTATION_RIGHT then return "right"
+	elseif orientation == ORIENTATION_UP then return "up"
+	elseif orientation == ORIENTATION_DOWN then return "down"
+	else error("Invalid orientation value!") end
+end
 
 -- schedule rotation by angle, or finalize rotation if angle is nil
 function Turtle.Rel.rotate_by(angle)
