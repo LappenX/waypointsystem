@@ -220,7 +220,7 @@ end
 
 function Mine.Plugin.UnloadAtWaypoint:post_dig(calling_operation, orientation, block_id, block_metadata)
 	assert(calling_operation, "No calling operation given")
-	if not calling_operation.goto_start or not calling_operation.goto_mine or calling_operation:isInGoto() then return end
+	if not calling_operation.goto_start_impl or not calling_operation.goto_mine_impl or calling_operation:isInGoto() then return end
 	
 	local inventory_full = true -- TODO when to empty inventory
 	for i = 1, 16 do
