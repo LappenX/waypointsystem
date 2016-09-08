@@ -253,12 +253,13 @@ function Waypoint:goto()
 	if not current_wp.routing_table:contains_key(self) then 
 		calc_routing_to(self, current_wp)
 	end
-	
+
 	-- traverse route
 	while current_wp ~= self do
 		-- get next wp on route
 		local next_wp = current_wp.routing_table:get(self)
 		assert(next_wp, "No route from wp(" .. tostring(current_wp.id) .. ") to wp(" .. tostring(self.id) .. ") possible!")
+		assert(next_wp ~= current_wp, "Invalid route!")
 
 		-- move to next wp without digging
 		Turtle.Abs.move_to(next_wp.location, false)
