@@ -2,7 +2,7 @@ Waypoint.Plugin.MiningStation = {}
 Waypoint.Plugin.MiningStation.__index = Waypoint.Plugin.MiningStation
 setmetatable(Waypoint.Plugin.MiningStation, {__index = Waypoint.Plugin})
 
-function Waypoint.Plugin.MiningStation.new(operation, directions, rectangle_size, operation_rotation, client_terminate_condition)
+function Waypoint.Plugin.MiningStation.new(operation, directions, rectangle_size, operation_rotation, client_terminate_condition, initial_offset)
 	local result = {}
 	setmetatable(result, Waypoint.Plugin.MiningStation)
 	
@@ -12,6 +12,7 @@ function Waypoint.Plugin.MiningStation.new(operation, directions, rectangle_size
 	result.rectangle_size = rectangle_size
 	result.operation_rotation = operation_rotation
 	result.client_terminate_condition = client_terminate_condition
+	result.initial_offset = initial_offset or Vec.new(0, 0, 0)
 	
 	result.plugin_type = Waypoint.Plugin.MiningStation
 	
@@ -86,13 +87,14 @@ function Waypoint.Plugin.MiningStation:run()
 		local offset_op = Operation.Offset.new(
 			function(f_move) -- f_goto_start
 				for i = 0, next_pos:dims() - 1 do
-					f_move(-math.abs(size:get_by_rotation(self.directions:get(i)) * next_pos:get(i)), Turtle.Abs.to_orientation(self.directions:get(i)))
+					f_move(-math.abs(self.initial_offset:get(i) + size:get_by_rotation(self.directions:get(i)) * next_pos:get(i)), Turtle.Abs.to_orientation(self.directions:get(i)))
 				end
 			end,
 			function(f_move) -- f_goto_mine
 				for i = 0, next_pos:dims() - 1 do
-					f_move(math.abs(size:get_by_rotation(self.directions:get(i)) * next_pos:get(i)), Turtle.Abs.to_orientation(self.directions:get(i)))
+					f_move(math.abs(self.initial_offset:get(i) + size:get_by_rotation(self.directions:get(i)) * next_pos:get(i)), Turtle.Abs.to_orientation(self.directions:get(i)))
 				end
+				Turtle.Abs.rotate_to(self.operation_rotation)
 			end
 		)
 		offset_op:add_plugin(Operation.Plugin.EvadeTurtles.new())
