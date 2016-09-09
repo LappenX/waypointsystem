@@ -149,6 +149,7 @@ loader.include("api/mc/turtle/operation/minebranch_s.lua")
 loader.include("api/mc/turtle/operation/minebox.lua")
 loader.include("api/mc/turtle/operation/mineline.lua")
 loader.include("api/mc/turtle/operation/offset.lua")
+loader.include("api/mc/turtle/operation/wait.lua")
 
 
 
