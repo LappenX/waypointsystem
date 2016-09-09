@@ -19,6 +19,15 @@ function Net.init()
 	error("No modem found!")
 end
 
+function Net.hasModem()
+	for _, side in ipairs(peripheral.getNames()) do
+		if peripheral.getType(side) == "modem" then
+			return true
+		end
+	end
+	return false
+end
+
 function Net.deinit()
 	if not modem_loaded then return end
 	modem_loaded = false
