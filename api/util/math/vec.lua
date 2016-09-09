@@ -1,4 +1,5 @@
 loader.include("api/util/functional.lua")
+loader.include("api/util/string.lua")
 
 Vec = {}
 Vec3 = {}
@@ -70,6 +71,10 @@ function Vec3.new_by_rotation(rotation, length)
 end
 
 function tovec(str, dims)
+	if starts_with(str, "[") and ends_with(str, "]") then
+		str = str:sub(2, str:len() - 1)
+	end
+
 	local tokens = split(str, ",")
 	local result = Vec.new()
 	for token in tokens:it() do
