@@ -1,4 +1,5 @@
 loader.include("api/mc/turtle/operation.lua")
+loader.include("api/mc/blocks.lua")
 
 local TURTLE_MAX_RANDOM_TEST_TIME = 10.0
 local TURTLE_EVADE_DURATION = 5.0
@@ -17,7 +18,7 @@ function Operation.Plugin.EvadeTurtles.new(dig)
 end
 
 function Operation.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, block_id, block_metadata)
-	if block_id == 204 or block_id == 205 then -- is turtle
+	if TURTLES:contains(block_id) then
 		local waited = 0
 		while true do
 			local wait_time = math.random() * TURTLE_MAX_RANDOM_TEST_TIME
@@ -30,7 +31,7 @@ function Operation.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, b
 				local evaded = false
 				-- evade to free spot
 				for evade_orientation in ORIENTATIONS:it() do
-					if evade_orientation ~= orientation and not Turtle.Rel.detect(evade_orientation) then
+					if evade_orientation ~= orientation and evade_orientation ~= Turtle.Rel.opposite(orientation) and not Turtle.Rel.detect(evade_orientation) then
 						-- found free block next to turtle
 						Turtle.Rel.move(1, evade_orientation)
 						os.sleep(TURTLE_EVADE_DURATION)
@@ -42,15 +43,17 @@ function Operation.Plugin.EvadeTurtles:pre_dig(calling_operation, orientation, b
 				-- if not successful: dig and evade there
 				if not evaded and self.dig then
 					for evade_orientation in ORIENTATIONS:it() do
-						if evade_orientation ~= orientation then
+						if evade_orientation ~= orientation and evade_orientation ~= Turtle.Rel.opposite(orientation) then
 							local success, data = Turtle.Rel.inspect(evade_orientation)
-							local new_block_id = Blocks.get(data.name)
-							if block_id ~= 204 and block_id ~= 205 then -- not turtle
-								-- found block that can be dug
-								Turtle.Rel.move(1, evade_orientation, true)
-								os.sleep(TURTLE_EVADE_DURATION)
-								Turtle.Rel.move(-1, evade_orientation)
-								break
+							if success then
+								local new_block_id = Blocks.get(data.name)
+								if not TURTLES:contains(new_block_id) then
+									-- found block that can be dug
+									Turtle.Rel.move(1, evade_orientation, true)
+									os.sleep(TURTLE_EVADE_DURATION)
+									Turtle.Rel.move(-1, evade_orientation)
+									break
+								end
 							end
 						end
 					end
