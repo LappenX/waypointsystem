@@ -44,8 +44,16 @@ end
 
 function starts_with(str, start)
 	assert(str and start)
-	return not (str:len() < start:len()) and string.sub(str, 1, string.len(start)) == start
+	return not (str:len() < start:len()) and string.sub(str, 1, start:len()) == start
 end
+
+function ends_with(str, end_)
+	assert(str and end_)
+	return not (str:len() < end_:len()) and string.sub(str, str:len() - end_:len() + 1, str:len()) == end_
+end
+
+-- TODO: more unit tests elsewhere
+assert(ends_with("asdf", "df") and not ends_with("asdf", "sd"), "ends_with not working")
 
 function make_length(str, length, leading, insert_char)
 	leading = leading or true
