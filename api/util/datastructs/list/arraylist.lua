@@ -29,11 +29,22 @@ end
 
 function ArrayList:remove(index)
 	if index >= self:size() then error("List index out of bounds!", 2) end
-	
+		
 	local result = self:get(index)
 	table.remove(self.array, index + 1)
 	
 	return result
+end
+
+function ArrayList:remove_val(val)
+	for i = 0, self:size() - 1 do
+		local result = self:get(i)
+		if result == val then
+			table.remove(self.array, i + 1)
+			return result
+		end
+	end
+	error("List does not contain given object!")
 end
 
 function ArrayList:get(index)
@@ -43,6 +54,10 @@ end
 
 function ArrayList:size()
 	return table.getn(self.array)
+end
+
+function ArrayList:clear()
+	self.array = {}
 end
 
 function ArrayList:it()
