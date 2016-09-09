@@ -8,7 +8,6 @@ function Operation.Plugin.UnloadAtWaypoint.new(storage_wp, keep_amounts)
 	setmetatable(result, Operation.Plugin.UnloadAtWaypoint)
 	
 	assert(storage_wp, "No waypoint given!")
-	assert(storage_wp:has_plugin(Waypoint.Plugin.Storage), "Waypoint must have Storage plugin!")
 	result.storage_wp = storage_wp
 	result.keep_amounts = keep_amounts
 	
@@ -16,6 +15,7 @@ function Operation.Plugin.UnloadAtWaypoint.new(storage_wp, keep_amounts)
 end
 
 function Operation.Plugin.UnloadAtWaypoint:init()
+	assert(self.storage_wp:has_plugin(Waypoint.Plugin.Storage), "Waypoint must have Storage plugin!")
 	assert(self.plugin_operation.goto_start_impl and self.plugin_operation.goto_mine_impl, "Operation does not support this plugin!")
 	assert(Turtle.Abs.hasWorldCoord(), "Turtle must be calibrated!")
 	assert(Waypoint.isCalibrated(), "Waypoint must be calibrated!")
