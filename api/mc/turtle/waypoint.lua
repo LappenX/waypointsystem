@@ -118,6 +118,7 @@ local function load_waypoints()
 			if plugin_tokens:size() == 1 and plugin_tokens:get(0) == "" then plugin_tokens:remove(0) end
 
 			local wp = Waypoint.new(id, location, next_ids, plugin_tokens)
+			assert(not Waypoint.getFromLocation(wp.location), "Waypoint already exists at location " .. tostring(wp.location))
 			wps:put(id, wp)
 		end
 	end
@@ -129,9 +130,11 @@ local function load_waypoints()
 		for next_id in wp.next_ids:it() do
 			local next_wp = wps:get(next_id)
 			assert(next_wp, "Wp(" .. tostring(wp.id) .. ") points to invalid wp(" .. tostring(next_id) .. ")")
-			wp.outgoing:append(next_wp)
-			next_wp.incoming:append(wp)
+			wp.outgoing:push(next_wp)
+			next_wp.incoming:push(wp)
+			assert(next_wp.incoming:size() > 0, "Something went wrong while parsing waypoints!")
 		end
+		assert(wp.next_ids:size() == wp.outgoing:size(), "Something went wrong while parsing waypoints!")
 		wp.next_ids = nil
 		
 		-- install plugins
@@ -208,6 +211,7 @@ function Waypoint.add(wp)
 	assert(wp)
 	
 	load_waypoints()
+	assert(not Waypoint.getFromLocation(wp.location), "Waypoint already exists at location " .. tostring(wp.location))
 	wps:put(wp.id, wp)
 	save_waypoints()
 end
