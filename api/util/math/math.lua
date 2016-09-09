@@ -3,7 +3,7 @@ INF = math.huge
 function mod_(x, y)
 	val = math.fmod(x, y)
 	if val < 0 then
-		return val + 4
+		return val + y
 	else
 		return val
 	end
