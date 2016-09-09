@@ -50,7 +50,7 @@ Waypoint.__index = Waypoint
 
 
 local wps_loaded = false
-local wps = ListMap.new()
+local wps = TableMap.new()
 local current_wp = nil
 
 function Waypoint.new(id, location, next_ids, plugin_tokens)
@@ -165,7 +165,7 @@ local function calc_routing_to(target_wp, source_wp)
 	if target_wp == source_wp then return end
 
 	-- initial distances: dist[target_wp] = 0, dist[other] = INF
-	local dist = ListMap.new()
+	local dist = TableMap.new()
 	for wp in wps:values_it() do
 		dist:put(wp, INF)
 	end
@@ -184,7 +184,9 @@ local function calc_routing_to(target_wp, source_wp)
 				min_wp = wp
 			end
 		end
-		if not min_wp then end
+		if not min_wp then
+			error("No path from " .. tostring(source_wp.id) .. " to " .. tostring(target_wp.id) .. " found!")
+		end
 		
 		-- process node
 		shortest_path_tree:append(min_wp)
