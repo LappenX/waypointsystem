@@ -82,14 +82,18 @@ function Waypoint:distance(wp)
 	return (self.location - wp.location):manhattan_length()
 end
 
-function Waypoint.add_connection(from_wp, to_wp)
-	from_wp.outgoing:append(to_wp)
-	to_wp.incoming:append(from_wp)
+function Waypoint.makeHere(id)
+	local result = Waypoint.new(id, Turtle.Abs.getWorldLocation(), ArrayList.new(), ArrayList.new())
+	Waypoint.add(result)
+	if turtle then Waypoint.calibrate(result) end
+	return result
 end
 
-function Waypoint.makeHere(id)
-	Waypoint.add(Waypoint.new(id, Turtle.Abs.getWorldLocation(), ArrayList.new(), ArrayList.new()))
-	Waypoint.calibrate(Waypoint.get(id))
+function Waypoint.makeAt(location, id)
+	local result = Waypoint.new(id, location, ArrayList.new(), ArrayList.new())
+	Waypoint.add(result)
+	if turtle then Waypoint.calibrate(result) end
+	return result
 end
 
 local function load_waypoints()
@@ -125,7 +129,8 @@ local function load_waypoints()
 		for next_id in wp.next_ids:it() do
 			local next_wp = wps:get(next_id)
 			assert(next_wp, "Wp(" .. tostring(wp.id) .. ") points to invalid wp(" .. tostring(next_id) .. ")")
-			Waypoint.add_connection(wp, next_wp)
+			wp.outgoing:append(next_wp)
+			next_wp.incoming:append(wp)
 		end
 		wp.next_ids = nil
 		
@@ -205,9 +210,47 @@ function Waypoint.add(wp)
 	save_waypoints()
 end
 
+function Waypoint.remove(wp)
+	assert(wp)
+	
+	load_waypoints()
+	for out in wp.outgoing:it() do
+		out.incoming:remove_val(wp)
+	end
+	for in_ in wp.incoming:it() do
+		in_.outgoing:remove_val(wp)
+	end
+	
+	wps:remove(wp.id)
+	save_waypoints()
+end
+
+function Waypoint.addConnection(from_wp, to_wp)
+	load_waypoints()
+	from_wp.outgoing:append(to_wp)
+	to_wp.incoming:append(from_wp)
+	save_waypoints()
+end
+
+function Waypoint.removeConnection(from_wp, to_wp)
+	load_waypoints()
+	from_wp.outgoing:remove_val(to_wp)
+	to_wp.incoming:remove_val(from_wp)
+	save_waypoints()
+end
+
 function Waypoint.get(id)
 	load_waypoints()
 	return wps:get(id)
+end
+
+function Waypoint.getFromLocation(location)
+	for wp in wps:values_it() do
+		if wp.location == location then
+			return wp
+		end
+	end
+	return nil
 end
 
 -- wp == nil => find wp by turtle location
@@ -227,12 +270,7 @@ function Waypoint.calibrate(wp, rotation)
 		assert(Turtle.Abs.hasWorldCoord(), "Turtle must be calibrated to use waypoints!")
 		assert(not rotation or rotation == Turtle.Abs.getWorldRotation(), "Given rotation and turtle rotation must be equal!")
 		
-		for wp2 in wps:values_it() do
-			if wp2.location == Turtle.Abs.getWorldLocation() then
-				current_wp = wp2
-				break
-			end
-		end
+		current_wp = Waypoint.getFromLocation(Turtle.Abs.getWorldLocation())
 		assert(current_wp, "Couldn't find waypoint at turtle's location!")
 	end
 end
