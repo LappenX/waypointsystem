@@ -89,7 +89,11 @@ function Operation:dig(orientation)
 	if success then
 		self:do_plugins(self, false, "pre_dig", orientation, Blocks.get(data.name), data.metadata)
 		turtle.select(1)
-		Turtle.Rel.dig(orientation, true)
+		local success2, data2 = Turtle.Rel.inspect(orientation)
+		if success2 and TURTLES:contains(Blocks.get(data2.name)) then
+			error("Shouldn't dig turtles!")
+		end
+		Turtle.Rel.dig(orientation, true) -- TODO: don't dig if there's no block to dig
 		self:do_plugins(self, false, "post_dig", orientation, Blocks.get(data.name), data.metadata)
 	end
 end
