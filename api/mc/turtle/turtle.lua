@@ -684,6 +684,21 @@ function Turtle.Inv.find_first(item_id, item_metadata)
 	return nil
 end
 
+function Turtle.Inv.find_first_empty()
+	for i = 1, 16 do
+		if turtle.getItemCount(i) == 0 then
+			return i
+		end
+	end
+	return nil
+end
+
+function Turtle.Inv.select_first_empty()
+	local slot = Turtle.Inv.find_first_empty()
+	assert(slot, "Turtle has no empty slot!")
+	turtle.select(slot)
+end
+
 function Turtle.Inv.amount_of_id_mt(item_id, item_metadata)
 	return Turtle.Inv.amount_of(function(other_id, other_metadata) return item_id == other_id and (not item_metadata or item_metadata == other_metadata) end)
 end
