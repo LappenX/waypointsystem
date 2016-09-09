@@ -26,11 +26,11 @@ function Operation.MineLine:run_impl()
 end
 
 function Operation.MineLine:goto_start_impl()
-	self:move(self.length_moved * sign(self.length), ORIENTATION_BACK, true)
+	self:move(self.length_moved * sign(self.length), ORIENTATION_BACK)
 end
 
 function Operation.MineLine:goto_mine_impl()
-	self:move(self.length_moved * sign(self.length), ORIENTATION_FRONT, true)
+	self:move(self.length_moved * sign(self.length), ORIENTATION_FRONT)
 end
 
 function Operation.MineLine:size()

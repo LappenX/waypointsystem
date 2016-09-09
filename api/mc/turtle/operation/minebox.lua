@@ -19,7 +19,7 @@ end
 
 function Operation.MineBox:run_impl()
 	-- helper function
-	local function dig_layer(height, length)
+	local function dig_layer(height)
 		assert(math.abs(height) <= 3 and height ~= 0, "Invalid layer height!")
 
 		-- box behind turtle
@@ -62,6 +62,7 @@ function Operation.MineBox:run_impl()
 				-- dig last blocks
 				dig_helper(false, false, false)
 			end
+
 			right = not right
 			if self.abort then break end
 		end
@@ -69,6 +70,7 @@ function Operation.MineBox:run_impl()
 		if self.length < 0 and not self.abort then Turtle.Rel.rotate_by(2) self.rel_rotation = self.rel_rotation + 2 end
 	end
 	
+	local neg_width = self.width < 0
 	self.current_y = 0
 	self.layer = 0
 	self.rel_location = Vec.new(0, 0, 0)
@@ -94,19 +96,25 @@ function Operation.MineBox:run_impl()
 			self.width = -self.width
 		end
 	end
+	
+	if neg_width then
+		self.width = -math.abs(self.width)
+	else
+		self.width = math.abs(self.width)
+	end
 end
 
 function Operation.MineBox:goto_start_impl()
 	Turtle.Rel.rotate_by(-self.rel_rotation)
-	self:move(self.rel_location:get(0), ORIENTATION_LEFT, true)
-	self:move(self.rel_location:get(2), ORIENTATION_BACK, true)
-	self:move(self.rel_location:get(1), ORIENTATION_DOWN, true)
+	self:move(self.rel_location:get(0), ORIENTATION_LEFT)
+	self:move(self.rel_location:get(2), ORIENTATION_BACK)
+	self:move(self.rel_location:get(1), ORIENTATION_DOWN)
 end
 
 function Operation.MineBox:goto_mine_impl()
-	self:move(self.rel_location:get(1), ORIENTATION_UP, true)
-	self:move(self.rel_location:get(2), ORIENTATION_FRONT, true)
-	self:move(self.rel_location:get(0), ORIENTATION_RIGHT, true)
+	self:move(self.rel_location:get(1), ORIENTATION_UP)
+	self:move(self.rel_location:get(2), ORIENTATION_FRONT)
+	self:move(self.rel_location:get(0), ORIENTATION_RIGHT)
 	Turtle.Rel.rotate_by(self.rel_rotation)
 end
 
