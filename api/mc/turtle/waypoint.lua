@@ -336,7 +336,7 @@ end
 
 function Waypoint:goto()
 	assert(Waypoint.isCalibrated(), "Waypoint location not calibrated!")
-	assert(Turtle.Abs.getWorldLocation() == Waypoint.current().location, "Incorrect waypoint calibration!")
+	assert(Turtle.Abs.getWorldLocation() == Waypoint.current().location, "Incorrect waypoint calibration! (world_pos=" .. tostring(Turtle.Abs.getWorldLocation()) .. ", wp_id=" .. tostring(Waypoint.current().id))
 	
 	-- calculate routing table if necessary
 	if not current_wp.routing_table:contains_key(self) then 
