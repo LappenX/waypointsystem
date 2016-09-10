@@ -265,6 +265,13 @@ function Waypoint.add(wp)
 	save_waypoints()
 end
 
+function Waypoint.setLabel(wp, new_label)
+	assert(wp)
+	
+	wp.label = new_label
+	save_waypoints()
+end
+
 function Waypoint.remove(wp)
 	assert(wp)
 	
