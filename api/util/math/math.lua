@@ -20,3 +20,7 @@ function round(num, decimal_places)
   local mult = 10 ^ (decimal_places or 0)
   return math.floor(num * mult + 0.5) / mult
 end
+
+function to_rad(degree)
+	return degree / 180 * math.pi
+end
