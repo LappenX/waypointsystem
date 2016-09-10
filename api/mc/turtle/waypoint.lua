@@ -207,6 +207,51 @@ local function calc_routing_to(target_wp, source_wp)
 	end
 end
 
+function Waypoint.insertAt(location, id, max_angle)
+	load_waypoints()
+	assert(not Waypoint.getFromLocation(location), "Waypoint already exists at location " .. tostring(location))
+
+	max_angle = max_angle or 1
+	
+	local new_wp = Waypoint.makeAt(location, id)
+	
+	local list_from = ArrayList.new()
+	local list_to = ArrayList.new()
+
+	-- find intersections
+	for wp in wps:values_it() do
+		local dir_new = location - wp.location
+		local len_new = dir_new:length()
+		for i = 0, wp.outgoing:size() - 1 do
+			local out = wp.outgoing:get(i)
+			local dir_old = out.location - wp.location
+			local len_old = dir_old:length()
+			local angle = math.acos(dir_old:dot(dir_new) / (len_old * len_new))
+			if len_old > len_new and angle < to_rad(max_angle) then
+				list_from:append(wp)
+				list_to:append(out)
+				
+				wp.outgoing:remove(i)
+				out.incoming:remove_val(wp)
+				i = i - 1
+			end
+		end
+	end
+
+	for from in list_from:it() do
+		from.outgoing:append(new_wp)
+		new_wp.incoming:append(from)
+	end
+	for to in list_to:it() do
+		to.incoming:append(new_wp)
+		new_wp.outgoing:append(to)
+	end
+	
+	save_waypoints()
+	
+	return new_wp
+end
+
 function Waypoint.add(wp)
 	assert(wp)
 	
