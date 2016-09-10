@@ -53,7 +53,7 @@ local wps_loaded = false
 local wps = TableMap.new()
 local current_wp = nil
 
-function Waypoint.new(id, location, next_ids, plugin_tokens)
+function Waypoint.new(id, location, next_ids, plugin_tokens, label)
 	local result = {}
 	setmetatable(result, Waypoint)
 	
@@ -71,6 +71,7 @@ function Waypoint.new(id, location, next_ids, plugin_tokens)
 	result.routing_table = ListMap.new() -- map: target_wp -> next_wp
 	result.plugins = ListMap.new()
 	result.plugin_tokens = plugin_tokens
+	result.label = label or ""
 	
 	-- temporary
 	result.next_ids = next_ids
@@ -113,11 +114,12 @@ local function load_waypoints()
 			local id = tonumber(tokens:get(0))
 			local location = tovec(tokens:get(1))
 			local next_ids = map(compose(tonumber, trim), tolist(tokens:get(2)))
-			split(tokens:get(3), "|")
-			local plugin_tokens = map(trim, split(tokens:get(3), "|"))
+			split(tokens:get(4), "|")
+			local label = trim(tokens:get(3))
+			local plugin_tokens = map(trim, split(tokens:get(4), "|"))
 			if plugin_tokens:size() == 1 and plugin_tokens:get(0) == "" then plugin_tokens:remove(0) end
 
-			local wp = Waypoint.new(id, location, next_ids, plugin_tokens)
+			local wp = Waypoint.new(id, location, next_ids, plugin_tokens, label)
 			assert(not Waypoint.getFromLocation(wp.location), "Waypoint already exists at location " .. tostring(wp.location))
 			wps:put(id, wp)
 		end
@@ -157,9 +159,9 @@ end
 local function save_waypoints()
 	local file = fs.open(WAYPOINTS_FILE, "w")
 	
-	file.writeLine("#\tid\tlocation\tnext_ids\tplugins")
+	file.writeLine("#\tid\tlocation\tnext_ids\tlabel\tplugins")
 	for wp in wps:values_it() do
-		file.writeLine("\t" .. tostring(wp.id) .. ";\t" .. tostring(wp.location) .. ";\t" .. map(function(wp2) return wp2.id end, wp.outgoing):toString(", ") .. ";\t" .. wp.plugin_tokens:toString(" | "))
+		file.writeLine("\t" .. tostring(wp.id) .. ";\t" .. tostring(wp.location) .. ";\t" .. map(function(wp2) return wp2.id end, wp.outgoing):toString(", ") .. ";\t" .. wp.label .. ";\t" .. wp.plugin_tokens:toString(" | "))
 	end
 	file.close()
 end
