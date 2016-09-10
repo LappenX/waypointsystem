@@ -211,7 +211,7 @@ function Waypoint.insertAt(location, id, max_angle)
 	load_waypoints()
 	assert(not Waypoint.getFromLocation(location), "Waypoint already exists at location " .. tostring(location))
 
-	max_angle = max_angle or 1
+	max_angle = max_angle or 0.1
 	
 	local new_wp = Waypoint.makeAt(location, id)
 	
@@ -222,7 +222,8 @@ function Waypoint.insertAt(location, id, max_angle)
 	for wp in wps:values_it() do
 		local dir_new = location - wp.location
 		local len_new = dir_new:length()
-		for i = 0, wp.outgoing:size() - 1 do
+		local i = 0
+		while i < wp.outgoing:size() do
 			local out = wp.outgoing:get(i)
 			local dir_old = out.location - wp.location
 			local len_old = dir_old:length()
@@ -233,7 +234,8 @@ function Waypoint.insertAt(location, id, max_angle)
 				
 				wp.outgoing:remove(i)
 				out.incoming:remove_val(wp)
-				i = i - 1
+			else
+				i = i + 1
 			end
 		end
 	end
