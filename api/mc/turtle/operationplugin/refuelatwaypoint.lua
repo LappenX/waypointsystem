@@ -9,8 +9,8 @@ function Operation.Plugin.RefuelAtWaypoint.new(fuelstorage_wp, min_fuel, max_fue
 	
 	assert(fuelstorage_wp, "No waypoint given!")
 	result.fuelstorage_wp = fuelstorage_wp
-	result.min_fuel = min_fuel or 10000
-	result.max_fuel = max_fuel or turtle.getFuelLimit()
+	result.min_fuel = min_fuel or 5000
+	result.max_fuel = max_fuel or (turtle and turtle.getFuelLimit() or -1)
 	
 	return result
 end
