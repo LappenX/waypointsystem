@@ -98,6 +98,12 @@ function Operation:dig(orientation)
 	end
 end
 
+function Operation:place(orientation)
+	self:do_plugins(self, false, "pre_place", orientation)
+	Turtle.Rel.place(orientation)
+	self:do_plugins(self, false, "post_place", orientation)
+end
+
 function Operation:move(length, orientation, f_pre, f_post)
 	for i = 1, math.abs(length) do
 		self:dig(if_(length > 0, orientation, Turtle.Rel.opposite(orientation)))
@@ -168,4 +174,5 @@ loader.include("api/mc/turtle/operationplugin/dropexcessblocks.lua")
 loader.include("api/mc/turtle/operationplugin/unloadatwaypoint.lua")
 loader.include("api/mc/turtle/operationplugin/placesapling.lua")
 loader.include("api/mc/turtle/operationplugin/dig.lua")
+loader.include("api/mc/turtle/operationplugin/place.lua")
 loader.include("api/mc/turtle/operationplugin/refuelatwaypoint.lua")
