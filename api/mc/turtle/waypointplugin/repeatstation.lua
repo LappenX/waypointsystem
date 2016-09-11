@@ -29,4 +29,6 @@ function Waypoint.Plugin.RepeatStation:run()
 		
 		print("Finished round. Fuel consumption: " .. tostring(initial_fuel - turtle.getFuelLevel()))
 	end
+	
+	return self
 end

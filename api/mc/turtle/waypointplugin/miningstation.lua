@@ -74,6 +74,7 @@ function Waypoint.Plugin.MiningStation:run()
 	print("Starting station client with turtle id " .. tostring(os.getComputerID()))
 	
 	local num = 0
+	Turtle.Abs.rotate_to(self.operation_rotation)
 	while not self.client_terminate_condition:passes(num) do
 		local initial_fuel = turtle.getFuelLevel()
 		local next_pos = self:getNextPos()
@@ -104,7 +105,10 @@ function Waypoint.Plugin.MiningStation:run()
 		-- returned to disk drive
 		num = num + 1
 		print("Finished. Fuel consumption: " .. tostring(initial_fuel - turtle.getFuelLevel()))
+		Turtle.Abs.rotate_to(self.operation_rotation)
 	end
 	
 	print(if_(self.client_terminate_condition:passes(num), "Terminate condition reached!", "No next mining position left!"))
+	
+	return self
 end
