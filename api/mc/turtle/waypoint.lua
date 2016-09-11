@@ -423,5 +423,5 @@ end
 
 loader.include("api/mc/turtle/waypointplugin/storage.lua")
 loader.include("api/mc/turtle/waypointplugin/miningstation.lua")
-loader.include("api/mc/turtle/waypointplugin/agriculturestation.lua")
+loader.include("api/mc/turtle/waypointplugin/repeatstation.lua")
 loader.include("api/mc/turtle/waypointplugin/fuelstorage.lua")
